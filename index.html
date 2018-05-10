@@ -1,0 +1,114 @@
+<html>
+	<head>
+	</head>
+	<body onload="calc_X(1, 2045)">
+		
+		<script>
+		var X = {
+			1995: 500000,
+			1996: 100000,
+			1997: 150000,
+			1998: 200000,
+			1999: 250000,
+			2000: 300000,
+		};
+
+		// AbStraction of Y(t), final demand.
+		var Y = 15000;
+
+		// Abstraction of A(t), technology matrix.
+		var A = {
+			1999: 0.13,
+			2000: 0.15,
+			2001: 0.34,
+			2002: 0.45,
+		};
+
+		// AbStraction of c-theta(t), planned capacity in t+theta during t.
+		var c_theta = {};
+		
+		// Abstraction of c-delta(t), expansion required for capacity in t.
+		var c_delta = {};
+
+		// Abstraction of c(t), currently installed capacity in t.
+		var c = {
+			1996: 40000,
+			1997: 50000,
+			1998: 70000,
+			1999: 80000,
+			2000: 90000,
+		};
+		
+		// AbStraction of gx(t), growth of X in t.
+		var gx = {};
+		
+		// AbStraction of S, Share capital in t.
+		var S = {
+			1996: 0.03,
+			1997: 0.04,
+			1998: 0.06,
+			1999: 0.07,
+			2000: 0.08,
+		};
+		
+		// Abstraction of investment, z.
+		var Z = {};
+		
+		// Abstraction of matrix of capital requirement.
+		var B = 15;
+		
+		// Calculate gx from Xt and Xt-1
+		var _gx = function(t) {
+			if (X[t] && X[t-1]) {
+				gx[t] = (X[t]-X[t-1])/X[t];
+				return (X[t]-X[t-1])/X[t];
+			} else {
+				return 0;
+			}
+		};
+
+		function calc_X(i, j) {
+			for(var t=2000; t<=j; ++t) {
+				
+				// Set desired capacity for future planned in current t.
+				c_theta[t] = (1+0.4*_gx(t-1)+0.3*_gx(t-2)+0.2*_gx(t-3)+0.1*_gx(t-4))*X[t-1];
+								
+				// Set newly installed capacity.
+				c_delta[t]= c_theta[t]-c[t]+(S[t]*c[t]);
+				
+				// Set Share S.
+				S[t] = c_delta[t]/c[t-1];
+				
+				// Set new value of investment Z.
+				Z[t] = B*c_delta[t];
+				
+				// Set current capacity c.
+				c[t+1] = (1-S[t])*c[t]+c_delta[t];
+				
+				// Set new value of A.
+				A[t+1] = A[t]*S[t+1];
+								
+				// calc X.
+				X[t+1] = ((1-A[t+1])^1)*(Y+Z[t]);
+				
+				console.log(({
+					t: t,
+					gx: _gx(t),
+					c_theta: c_theta[t],
+					c_delta: c_delta[t],
+					Z: Z[t],
+					next_c: c[t+1],
+					next_S: S[t+1],
+					cur_A: A[t],
+					next_A: A[t+1],
+					cur_X: X[t],
+					next_X: X[t+1],
+					cur_S: S[t],
+					next_S: S[t+1],
+					I_min_A_Invers: ((1-A[t+1])^1),
+				}));
+			}
+		}
+		</script>
+	</body>
+</html>
